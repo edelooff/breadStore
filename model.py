@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import BINARY, Column, Date, DateTime, Enum, ForeignKey, Index, Integer, SmallInteger, String, Table, Text
+from sqlalchemy import BINARY, Column, Date, DateTime, Enum, ForeignKey, Index, Integer, SmallInteger, String, Table, Text, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql.base import MEDIUMBLOB
 from sqlalchemy.ext.declarative import declarative_base
@@ -110,7 +110,7 @@ class KlantStatus(Base):
     opmerking = Column(Text)
     wijzigingsdatum = Column(Date)
     medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False, index=True)
-    update_tijd = Column(DateTime, nullable=False, server_default='CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
+    update_tijd = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
     klant = relationship('Klant')
     medewerker = relationship('Medewerker')
@@ -141,7 +141,7 @@ class Medewerker(Base):
     naam = Column(String(32), nullable=False)
     email_adres = Column(String(64), nullable=False)
     rol_id = Column(ForeignKey('rol.id'), nullable=False, index=True)
-    actief = Column(Integer, nullable=False, server_default=u"'1'")
+    actief = Column(Integer, nullable=False, server_default='1')
     login = Column(String(32), nullable=False)
     wachtwoord_hash = Column(BINARY(32), nullable=False)
     wachtwoord_salt = Column(BINARY(8), nullable=False)
@@ -178,11 +178,11 @@ class PakketStatus(Base):
     id = Column(Integer, primary_key=True)
     pakket_id = Column(ForeignKey('pakket.id'), nullable=False, index=True)
     ophaaldatum = Column(Date, nullable=False)
-    verwerkt = Column(Integer, nullable=False, server_default=u"'0'")
-    opgehaald = Column(Integer, nullable=False, server_default=u"'0'")
-    malus = Column(Integer, nullable=False, server_default=u"'0'")
+    verwerkt = Column(Integer, nullable=False, server_default='0')
+    opgehaald = Column(Integer, nullable=False, server_default='0')
+    malus = Column(Integer, nullable=False, server_default='0')
     medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False, index=True)
-    update_tijd = Column(DateTime, nullable=False, server_default='CURRENT_TIMESTAMP')
+    update_tijd = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
 
     medewerker = relationship('Medewerker')
     pakket = relationship('Pakket')
@@ -221,7 +221,7 @@ class Sessie(Base):
     id = Column(Integer, primary_key=True)
     sessie_sleutel = Column(BINARY(32), nullable=False, index=True)
     medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False, index=True)
-    geldig_tot = Column(DateTime, nullable=False, server_default='CURRENT_TIMESTAMP')
+    geldig_tot = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
 
     medewerker = relationship('Medewerker')
 
@@ -235,7 +235,7 @@ class UitgifteCyclus(Base):
     omschrijving = Column(String(64), nullable=False)
     ophaaldag = Column(Integer, nullable=False)
     locatie_id = Column(ForeignKey('locatie.id'), nullable=False, index=True)
-    actief = Column(Integer, nullable=False, server_default=u"'1'")
+    actief = Column(Integer, nullable=False, server_default='1')
     kleur = Column(String(6), nullable=False)
 
     locatie = relationship('Locatie')
