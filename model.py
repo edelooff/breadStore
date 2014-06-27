@@ -27,9 +27,8 @@ class Abonnement(Base):
 
 t_abonnement_dieet = Table(
     'abonnement_dieet', metadata,
-    Column('abonnement_id', ForeignKey('abonnement.id'), primary_key=True, nullable=False),
-    Column('dieet_id', ForeignKey('dieet.id'), primary_key=True, nullable=False)
-)
+    Column('abonnement_id', ForeignKey('abonnement.id'), primary_key=True),
+    Column('dieet_id', ForeignKey('dieet.id'), primary_key=True))
 
 
 class Contactpersoon(Base):
@@ -209,8 +208,8 @@ class Rol(Base):
 t_rol_permissie = Table(
     'rol_permissie',
     metadata,
-    Column('rol_id', ForeignKey('rol.id'), primary_key=True, nullable=False),
-    Column('permissie_id', ForeignKey('permissie.id'), primary_key=True, nullable=False))
+    Column('rol_id', ForeignKey('rol.id'), primary_key=True),
+    Column('permissie_id', ForeignKey('permissie.id'), primary_key=True))
 
 
 class Sessie(Base):
