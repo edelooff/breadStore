@@ -58,7 +58,7 @@ class Datumwijziging(Base):
 class Dieet(Base):
     __tablename__ = 'dieet'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
     naam = Column(String(45))
     sticker_kleur = Column(String(16), nullable=False)
 
@@ -129,14 +129,14 @@ class KlantTelefoonnummer(Base):
 class Locatie(Base):
     __tablename__ = 'locatie'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
     naam = Column(String(45), nullable=False)
 
 
 class Medewerker(Base):
     __tablename__ = 'medewerker'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
     naam = Column(String(32), nullable=False)
     email_adres = Column(String(64), nullable=False)
     rol_id = Column(ForeignKey('rol.id'), nullable=False)
@@ -165,7 +165,7 @@ class Pakket(Base):
 class PakketGrootte(Base):
     __tablename__ = 'pakket_grootte'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
     code = Column(String(1))
     min_gezinsgrootte = Column(Integer, nullable=False)
     omschrijving = Column(String(45))
@@ -190,7 +190,7 @@ class PakketStatus(Base):
 class Permissie(Base):
     __tablename__ = 'permissie'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
     permissie = Column(String(32), nullable=False)
     omschrijving = Column(Text, nullable=False)
 
@@ -198,7 +198,7 @@ class Permissie(Base):
 class Rol(Base):
     __tablename__ = 'rol'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
     naam = Column(String(32), nullable=False)
     omschrijving = Column(String(200), nullable=False)
 
@@ -228,7 +228,7 @@ class UitgifteCyclus(Base):
     __table_args__ = (
         Index('uitgifte', 'ophaaldag', 'locatie_id'),)
 
-    id = Column(Integer, primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
     omschrijving = Column(String(64), nullable=False)
     ophaaldag = Column(Integer, nullable=False)
     locatie_id = Column(ForeignKey('locatie.id'), nullable=False)
