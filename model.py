@@ -203,16 +203,14 @@ class Rol(Base):
     naam = Column(String(32), nullable=False)
     omschrijving = Column(String(200), nullable=False)
 
+    permissies = relationship('Permissie', secondary='rol_permissie')
 
-class RolPermissie(Base):
-    __tablename__ = 'rol_permissie'
 
-    id = Column(Integer, primary_key=True)
-    rol_id = Column(ForeignKey('rol.id'), nullable=False)
-    permissie_id = Column(ForeignKey('permissie.id'), nullable=False)
-
-    permissie = relationship('Permissie')
-    rol = relationship('Rol')
+t_rol_permissie = Table(
+    'rol_permissie',
+    metadata,
+    Column('rol_id', ForeignKey('rol.id'), primary_key=True, nullable=False),
+    Column('permissie_id', ForeignKey('permissie.id'), primary_key=True, nullable=False))
 
 
 class Sessie(Base):
