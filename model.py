@@ -13,8 +13,8 @@ class Abonnement(Base):
     __tablename__ = 'abonnement'
 
     id = Column(Integer, primary_key=True)
-    klant_id = Column(ForeignKey('klant.id'), nullable=False, index=True)
-    uitgifte_cyclus_id = Column(ForeignKey('uitgifte_cyclus.id'), nullable=False, index=True)
+    klant_id = Column(ForeignKey('klant.id'), nullable=False)
+    uitgifte_cyclus_id = Column(ForeignKey('uitgifte_cyclus.id'), nullable=False)
     datum_start = Column(Date, nullable=False)
     datum_einde = Column(Date, index=True)
     pakket_aantal = Column(Integer, nullable=False)
@@ -28,7 +28,7 @@ class Abonnement(Base):
 t_abonnement_dieet = Table(
     'abonnement_dieet', metadata,
     Column('abonnement_id', ForeignKey('abonnement.id'), primary_key=True, nullable=False),
-    Column('dieet_id', ForeignKey('dieet.id'), primary_key=True, nullable=False, index=True)
+    Column('dieet_id', ForeignKey('dieet.id'), primary_key=True, nullable=False)
 )
 
 
@@ -36,7 +36,7 @@ class Contactpersoon(Base):
     __tablename__ = 'contactpersoon'
 
     id = Column(SmallInteger, primary_key=True)
-    klant_id = Column(ForeignKey('klant.id'), nullable=False, index=True)
+    klant_id = Column(ForeignKey('klant.id'), nullable=False)
     rol = Column(String(32))
     naam = Column(String(64), nullable=False)
     telefoonnummer = Column(String(10))
@@ -105,11 +105,11 @@ class KlantStatus(Base):
     __tablename__ = 'klant_status'
 
     id = Column(Integer, primary_key=True)
-    klant_id = Column(ForeignKey('klant.id'), nullable=False, index=True)
+    klant_id = Column(ForeignKey('klant.id'), nullable=False)
     status = Column(Enum('nieuw', 'afgewezen', 'doorverwezen', 'klant', 'verhuisd', 'regulier beeindigd', 'weggestuurd'), nullable=False)
     opmerking = Column(Text)
     wijzigingsdatum = Column(Date)
-    medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False, index=True)
+    medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False)
     update_tijd = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
     klant = relationship('Klant')
@@ -120,7 +120,7 @@ class KlantTelefoonnummer(Base):
     __tablename__ = 'klant_telefoonnummer'
 
     id = Column(Integer, primary_key=True)
-    klant_id = Column(ForeignKey('klant.id'), nullable=False, index=True)
+    klant_id = Column(ForeignKey('klant.id'), nullable=False)
     soort = Column(Enum('mobiel', 'thuis', 'werk'), nullable=False)
     nummer = Column(String(10), nullable=False)
 
@@ -140,7 +140,7 @@ class Medewerker(Base):
     id = Column(Integer, primary_key=True)
     naam = Column(String(32), nullable=False)
     email_adres = Column(String(64), nullable=False)
-    rol_id = Column(ForeignKey('rol.id'), nullable=False, index=True)
+    rol_id = Column(ForeignKey('rol.id'), nullable=False)
     actief = Column(Integer, nullable=False, server_default='1')
     login = Column(String(32), nullable=False)
     wachtwoord_hash = Column(BINARY(32), nullable=False)
@@ -157,7 +157,7 @@ class Pakket(Base):
     id = Column(Integer, primary_key=True)
     abonnement_id = Column(ForeignKey('abonnement.id'), nullable=False)
     volgnummer = Column(Integer, nullable=False)
-    pakket_grootte_id = Column(ForeignKey('pakket_grootte.id'), nullable=False, index=True)
+    pakket_grootte_id = Column(ForeignKey('pakket_grootte.id'), nullable=False)
 
     abonnement = relationship('Abonnement')
     pakket_grootte = relationship('PakketGrootte')
@@ -167,7 +167,7 @@ class PakketGrootte(Base):
     __tablename__ = 'pakket_grootte'
 
     id = Column(Integer, primary_key=True)
-    code = Column(String(1), index=True)
+    code = Column(String(1))
     min_gezinsgrootte = Column(Integer, nullable=False)
     omschrijving = Column(String(45))
 
@@ -176,12 +176,12 @@ class PakketStatus(Base):
     __tablename__ = 'pakket_status'
 
     id = Column(Integer, primary_key=True)
-    pakket_id = Column(ForeignKey('pakket.id'), nullable=False, index=True)
+    pakket_id = Column(ForeignKey('pakket.id'), nullable=False)
     ophaaldatum = Column(Date, nullable=False)
     verwerkt = Column(Integer, nullable=False, server_default='0')
     opgehaald = Column(Integer, nullable=False, server_default='0')
     malus = Column(Integer, nullable=False, server_default='0')
-    medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False, index=True)
+    medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False)
     update_tijd = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
 
     medewerker = relationship('Medewerker')
@@ -208,8 +208,8 @@ class RolPermissie(Base):
     __tablename__ = 'rol_permissie'
 
     id = Column(Integer, primary_key=True)
-    rol_id = Column(ForeignKey('rol.id'), nullable=False, index=True)
-    permissie_id = Column(ForeignKey('permissie.id'), nullable=False, index=True)
+    rol_id = Column(ForeignKey('rol.id'), nullable=False)
+    permissie_id = Column(ForeignKey('permissie.id'), nullable=False)
 
     permissie = relationship('Permissie')
     rol = relationship('Rol')
@@ -220,7 +220,7 @@ class Sessie(Base):
 
     id = Column(Integer, primary_key=True)
     sessie_sleutel = Column(BINARY(32), nullable=False, index=True)
-    medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False, index=True)
+    medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False)
     geldig_tot = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
 
     medewerker = relationship('Medewerker')
@@ -234,7 +234,7 @@ class UitgifteCyclus(Base):
     id = Column(Integer, primary_key=True)
     omschrijving = Column(String(64), nullable=False)
     ophaaldag = Column(Integer, nullable=False)
-    locatie_id = Column(ForeignKey('locatie.id'), nullable=False, index=True)
+    locatie_id = Column(ForeignKey('locatie.id'), nullable=False)
     actief = Column(Integer, nullable=False, server_default='1')
     kleur = Column(String(6), nullable=False)
 
