@@ -1,7 +1,7 @@
 # coding: utf-8
-from sqlalchemy import BINARY, Column, Date, DateTime, Enum, ForeignKey, Index, Integer, SmallInteger, String, Table, Text, text
+from sqlalchemy import BINARY, Boolean, Column, Date, DateTime, Enum, ForeignKey, Index, Integer, SmallInteger, String, Table, Text, text
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.mysql.base import MEDIUMBLOB
+from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -80,8 +80,8 @@ class Gezinslid(Base):
 class Klant(Base):
     __tablename__ = 'klant'
 
-    id = Column(SmallInteger, primary_key=True)
-    klantcode = Column(String(8), nullable=False, unique=True)
+    id = Column(Integer, primary_key=True)
+    klantcode = Column(types.CHAR(8), nullable=False, unique=True)
     voorletters = Column(String(16))
     tussenvoegsel = Column(String(16))
     achternaam = Column(String(32), nullable=False)
@@ -97,7 +97,7 @@ class KlantFoto(Klant):
     __tablename__ = 'klant_foto'
 
     klant_id = Column(ForeignKey('klant.id'), primary_key=True)
-    foto = Column(MEDIUMBLOB, nullable=False)
+    foto = Column(types.MEDIUMBLOB, nullable=False)
 
 
 class KlantStatus(Base):
@@ -140,7 +140,7 @@ class Medewerker(Base):
     naam = Column(String(32), nullable=False)
     email_adres = Column(String(64), nullable=False)
     rol_id = Column(ForeignKey('rol.id'), nullable=False)
-    actief = Column(Integer, nullable=False, server_default='1')
+    actief = Column(Boolean, nullable=False, server_default='1')
     login = Column(String(32), nullable=False)
     wachtwoord_hash = Column(BINARY(32), nullable=False)
     wachtwoord_salt = Column(BINARY(8), nullable=False)
@@ -166,7 +166,7 @@ class PakketGrootte(Base):
     __tablename__ = 'pakket_grootte'
 
     id = Column(SmallInteger, primary_key=True)
-    code = Column(String(1))
+    code = Column(types.CHAR(1))
     min_gezinsgrootte = Column(Integer, nullable=False)
     omschrijving = Column(String(45))
 
@@ -177,9 +177,9 @@ class PakketStatus(Base):
     id = Column(Integer, primary_key=True)
     pakket_id = Column(ForeignKey('pakket.id'), nullable=False)
     ophaaldatum = Column(Date, nullable=False)
-    verwerkt = Column(Integer, nullable=False, server_default='0')
-    opgehaald = Column(Integer, nullable=False, server_default='0')
-    malus = Column(Integer, nullable=False, server_default='0')
+    verwerkt = Column(Boolean, nullable=False, server_default='0')
+    opgehaald = Column(Boolean, nullable=False, server_default='0')
+    malus = Column(Boolean, nullable=False, server_default='0')
     medewerker_id = Column(ForeignKey('medewerker.id'), nullable=False)
     update_tijd = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
 
@@ -232,7 +232,7 @@ class UitgifteCyclus(Base):
     omschrijving = Column(String(64), nullable=False)
     ophaaldag = Column(Integer, nullable=False)
     locatie_id = Column(ForeignKey('locatie.id'), nullable=False)
-    actief = Column(Integer, nullable=False, server_default='1')
-    kleur = Column(String(6), nullable=False)
+    actief = Column(Boolean, nullable=False, server_default='1')
+    kleur = Column(types.CHAR(6), nullable=False)
 
     locatie = relationship('Locatie')
