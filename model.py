@@ -191,7 +191,7 @@ class Permissie(Base):
     __tablename__ = 'permissie'
 
     id = Column(SmallInteger, primary_key=True)
-    permissie = Column(String(32), nullable=False)
+    naam = Column(String(32), nullable=False)
     omschrijving = Column(Text, nullable=False)
 
 
