@@ -30,9 +30,6 @@ def main(argv=sys.argv):
   paster.setup_logging(config_uri)
   settings = paster.get_appsettings(config_uri, options=options)
   engine = sqlalchemy.engine_from_config(settings, 'sqlalchemy.')
+  if options.get('recreate') == 'true':
+    models.Base.metadata.drop_all(engine)
   models.Base.metadata.create_all(engine)
-  session = sqlalchemy.orm.sessionmaker(
-      bind=engine, extension=zope.sqlalchemy.ZopeTransactionExtension())()
-  with transaction.manager:
-    obj = models.MyModel(name='one', value=1)
-    session.add(obj)
