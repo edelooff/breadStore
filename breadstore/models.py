@@ -170,7 +170,7 @@ class Medewerker(Base):
 
     def verify_password(self, password):
         """Checks the provided password against the stored hash."""
-        password = str(password)
+        password = password.encode('utf8')
         salt = self.wachtwoord[:16].decode('hex')
         result = ''
         for _step in range(100):
