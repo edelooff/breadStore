@@ -10,6 +10,9 @@ import sqlalchemy
 import sqlalchemy.orm
 import zope.sqlalchemy
 
+# Application modules
+from . import security
+
 
 def request_scoped_session(request):
   """Returns a database session."""
