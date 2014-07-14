@@ -164,19 +164,18 @@ class Medewerker(Base):
     rol_id = Column(StrictForeignKey('rol.id'))
     actief = Column(Boolean, server_default='1')
     login = Column(String(32))
-    wachtwoord_hash = Column(BINARY(32))
-    wachtwoord_salt = Column(BINARY(8))
+    wachtwoord = Column(String(80))
 
     rol = relationship('Rol')
 
     def verify_password(self, password):
         """Checks the provided password against the stored hash."""
         password = str(password)
-        salt = str(self.wachtwoord_salt)
+        salt = self.wachtwoord[:16].decode('hex')
         result = ''
         for _step in range(100):
           result = hashlib.sha256(salt + result + password).digest()
-        return self.wachtwoord_hash == result
+        return result == self.wachtwoord[16:].decode('hex')
 
 
 class Pakket(Base):
