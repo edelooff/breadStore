@@ -1,4 +1,4 @@
-"""breadStore API views."""
+"""breadStore API views - session module."""
 
 # Standard modules
 import operator
@@ -10,15 +10,10 @@ from pyramid.view import view_config
 from pyramid.view import view_defaults
 
 # Application modules
-from . import models
+from .. import models
 
 
-@view_config(renderer='json')
-def root(request):
-  return {'application': 'breadStore'}
-
-
-@view_defaults(context='.resources.Session', renderer='json')
+@view_defaults(context='..resources.Session', renderer='json')
 class SessionApi(object):
   def __init__(self, request):
     self.request = request
