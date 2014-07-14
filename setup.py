@@ -9,6 +9,7 @@ REQUIREMENTS = [
     'pyramid',
     'pyramid_debugtoolbar',
     'pyramid_tm',
+    'simplejson',
     'sqlalchemy',
     'transaction',
     'waitress',
