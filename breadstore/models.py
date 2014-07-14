@@ -1,9 +1,15 @@
 # coding: utf-8
+
+# Standard modyles
+import hashlib
+
+# Third-party modules
 import sqlalchemy
 from sqlalchemy import BINARY, Boolean, Date, Enum, Index, Integer, SmallInteger, String, Table, Text, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
+
 
 Base = declarative.declarative_base()
 metadata = Base.metadata
@@ -162,6 +168,15 @@ class Medewerker(Base):
     wachtwoord_salt = Column(BINARY(8))
 
     rol = relationship('Rol')
+
+    def verify_password(self, password):
+        """Checks the provided password against the stored hash."""
+        password = str(password)
+        salt = str(self.wachtwoord_salt)
+        result = ''
+        for _step in range(100):
+          result = hashlib.sha256(salt + result + password).digest()
+        return self.wachtwoord_hash == result
 
 
 class Pakket(Base):
