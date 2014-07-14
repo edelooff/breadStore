@@ -243,17 +243,6 @@ t_rol_permissie = Table(
     Column('permissie_id', ForeignKey('permissie.id'), primary_key=True))
 
 
-class Sessie(Base):
-    __tablename__ = 'sessie'
-
-    id = Column(Integer, primary_key=True)
-    sessie_sleutel = Column(BINARY(32), index=True)
-    medewerker_id = Column(ForeignKey('medewerker.id'))
-    geldig_tot = Column(types.TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
-
-    medewerker = relationship('Medewerker')
-
-
 class UitgifteCyclus(Base):
     __tablename__ = 'uitgifte_cyclus'
     __table_args__ = (
