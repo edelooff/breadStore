@@ -6,10 +6,11 @@ import hashlib
 # Third-party modules
 import bcrypt
 import sqlalchemy
-from sqlalchemy import BINARY, Boolean, Date, Enum, Index, Integer, SmallInteger, String, Table, Text, text
-from sqlalchemy.orm import relationship
+from sqlalchemy import (
+    Boolean, Date, Enum, Index, Integer, SmallInteger, String, Text, text)
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
+from sqlalchemy.orm import relationship
 
 
 Base = declarative.declarative_base()
@@ -128,11 +129,14 @@ class KlantStatus(Base):
 
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
-  status = Column(Enum('nieuw', 'afgewezen', 'doorverwezen', 'klant', 'verhuisd', 'regulier beeindigd', 'weggestuurd'))
+  status = Column(Enum(
+      'nieuw', 'afgewezen', 'doorverwezen', 'klant',
+      'verhuisd', 'regulier beeindigd', 'weggestuurd'))
   opmerking = Column(Text, server_default='')
   wijzigingsdatum = Column(Date, nullable=True)
   medewerker_id = Column(ForeignKey('medewerker.id'))
-  update_tijd = Column(types.TIMESTAMP, server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
+  update_tijd = Column(types.TIMESTAMP, server_default=text(
+      'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
   klant = relationship('Klant')
   medewerker = relationship('Medewerker')
@@ -222,7 +226,8 @@ class PakketStatus(Base):
   opgehaald = Column(Boolean, server_default='0')
   malus = Column(Boolean, server_default='0')
   medewerker_id = Column(ForeignKey('medewerker.id'))
-  update_tijd = Column(types.TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+  update_tijd = Column(
+      types.TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
 
   medewerker = relationship('Medewerker')
   pakket = relationship('Pakket')
