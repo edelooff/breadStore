@@ -4,6 +4,7 @@
 import hashlib
 
 # Third-party modules
+import bcrypt
 import sqlalchemy
 from sqlalchemy import BINARY, Boolean, Date, Enum, Index, Integer, SmallInteger, String, Table, Text, text
 from sqlalchemy.orm import relationship
@@ -168,14 +169,24 @@ class Medewerker(Base):
 
     rol = relationship('Rol')
 
+    def set_password(self, password, work_factor=10):
+      """(Re)sets the password for the user."""
+      salt = bcrypt.gensalt(work_factor)
+      self.wachtwoord = bcrypt.hashpw(password.encode('utf8'), salt)
+
     def verify_password(self, password):
         """Checks the provided password against the stored hash."""
         password = password.encode('utf8')
+        if self.wachtwoord.startswith('$2a$'):
+          pw_hash = bcrypt.hashpw(password, str(self.wachtwoord))
+          return pw_hash == self.wachtwoord
         salt = self.wachtwoord[:16].decode('hex')
         result = ''
         for _step in range(100):
           result = hashlib.sha256(salt + result + password).digest()
-        return result == self.wachtwoord[16:].decode('hex')
+        if result == self.wachtwoord[16:].decode('hex'):
+          self.set_password(password)
+          return True
 
 
 class Pakket(Base):
