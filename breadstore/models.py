@@ -1,9 +1,15 @@
 # coding: utf-8
+
+# Standard modyles
+import hashlib
+
+# Third-party modules
 import sqlalchemy
 from sqlalchemy import BINARY, Boolean, Date, Enum, Index, Integer, SmallInteger, String, Table, Text, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
+
 
 Base = declarative.declarative_base()
 metadata = Base.metadata
@@ -163,6 +169,15 @@ class Medewerker(Base):
 
     rol = relationship('Rol')
 
+    def verify_password(self, password):
+        """Checks the provided password against the stored hash."""
+        password = str(password)
+        salt = str(self.wachtwoord_salt)
+        result = ''
+        for _step in range(100):
+          result = hashlib.sha256(salt + result + password).digest()
+        return self.wachtwoord_hash == result
+
 
 class Pakket(Base):
     __tablename__ = 'pakket'
@@ -226,17 +241,6 @@ t_rol_permissie = Table(
     metadata,
     Column('rol_id', ForeignKey('rol.id'), primary_key=True),
     Column('permissie_id', ForeignKey('permissie.id'), primary_key=True))
-
-
-class Sessie(Base):
-    __tablename__ = 'sessie'
-
-    id = Column(Integer, primary_key=True)
-    sessie_sleutel = Column(BINARY(32), index=True)
-    medewerker_id = Column(ForeignKey('medewerker.id'))
-    geldig_tot = Column(types.TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
-
-    medewerker = relationship('Medewerker')
 
 
 class UitgifteCyclus(Base):
