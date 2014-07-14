@@ -1,13 +1,14 @@
-breadStore
-==========
+# breadStore
 
 An open rewrite of the customer management for a Dutch food bank
 
 
-Running the Pyramid development server
---------------------------------------
+## Installing and running Pyramid development server
 
-* cd <directory containing this file>
-* $VENV/bin/python setup.py develop
-* $VENV/bin/initialize_breadstore_db development.ini
-* $VENV/bin/pserve development.ini
+```bash
+virtualenv env
+source env/bin/activate
+python setup.py develop
+initdb_breadstore development.ini
+pserve development.ini --reload
+```
