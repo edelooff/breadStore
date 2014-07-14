@@ -48,10 +48,10 @@ class Abonnement(Base):
   dieets = relationship('Dieet', secondary='abonnement_dieet')
 
 
-t_abonnement_dieet = Table(
-  'abonnement_dieet', metadata,
-  Column('abonnement_id', ForeignKey('abonnement.id'), primary_key=True),
-  Column('dieet_id', ForeignKey('dieet.id'), primary_key=True))
+t_abonnement_dieet = sqlalchemy.Table(
+    'abonnement_dieet', metadata,
+    Column('abonnement_id', ForeignKey('abonnement.id'), primary_key=True),
+    Column('dieet_id', ForeignKey('dieet.id'), primary_key=True))
 
 
 class Contactpersoon(Base):
@@ -89,7 +89,7 @@ class Dieet(Base):
 class Gezinslid(Base):
   __tablename__ = 'gezinslid'
   __table_args__ = (
-    Index('klant', 'klant_id', 'naam', unique=True),)
+      Index('klant', 'klant_id', 'naam', unique=True),)
 
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
@@ -192,7 +192,7 @@ class Medewerker(Base):
 class Pakket(Base):
   __tablename__ = 'pakket'
   __table_args__ = (
-    Index('abonnement', 'abonnement_id', 'volgnummer', unique=True),)
+      Index('abonnement', 'abonnement_id', 'volgnummer', unique=True),)
 
   id = Column(Integer, primary_key=True)
   abonnement_id = Column(ForeignKey('abonnement.id'))
@@ -246,17 +246,17 @@ class Rol(Base):
   permissies = relationship('Permissie', secondary='rol_permissie')
 
 
-t_rol_permissie = Table(
-  'rol_permissie',
-  metadata,
-  Column('rol_id', ForeignKey('rol.id'), primary_key=True),
-  Column('permissie_id', ForeignKey('permissie.id'), primary_key=True))
+t_rol_permissie = sqlalchemy.Table(
+    'rol_permissie',
+    metadata,
+    Column('rol_id', ForeignKey('rol.id'), primary_key=True),
+    Column('permissie_id', ForeignKey('permissie.id'), primary_key=True))
 
 
 class UitgifteCyclus(Base):
   __tablename__ = 'uitgifte_cyclus'
   __table_args__ = (
-    Index('uitgifte', 'ophaaldag', 'locatie_id', unique=True),)
+      Index('uitgifte', 'ophaaldag', 'locatie_id', unique=True),)
 
   id = Column(SmallInteger, primary_key=True)
   omschrijving = Column(String(64))
