@@ -40,7 +40,7 @@ def main(global_config, **settings):
           http_only=True,
           reissue_time=3600,
           timeout=24 * 3600,
-          wild_domain=True))
+          wild_domain=False))
   config.set_authorization_policy(authorization.ACLAuthorizationPolicy())
   config.set_root_factory(resources.Root)
 
