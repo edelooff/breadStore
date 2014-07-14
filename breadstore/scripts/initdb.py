@@ -7,8 +7,6 @@ from pyramid import paster
 from pyramid.scripts import common
 import sqlalchemy
 import sqlalchemy.orm
-import transaction
-import zope.sqlalchemy
 
 # Application modules
 from .. import models
