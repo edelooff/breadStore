@@ -11,6 +11,7 @@ import sqlalchemy.orm
 import zope.sqlalchemy
 
 # Application modules
+from . import resources
 from . import security
 
 
@@ -41,6 +42,7 @@ def main(global_config, **settings):
           timeout=24 * 3600,
           wild_domain=True))
   config.set_authorization_policy(authorization.ACLAuthorizationPolicy())
+  config.set_root_factory(resources.Root)
 
   config.registry.dbmaker = sqlalchemy.orm.sessionmaker(
       bind=sqlalchemy.engine_from_config(settings),
