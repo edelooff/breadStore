@@ -29,7 +29,7 @@ def request_scoped_session(request):
 def main(global_config, **settings):
   """ This function returns a Pyramid WSGI application."""
   config = Configurator(settings=settings)
-  config.add_renderer('json', renderers.JSON(serializer=simplejson.dumps))
+  config.add_renderer(None, renderers.JSON(serializer=simplejson.dumps))
   config.add_request_method(request_scoped_session, 'db', reify=True)
   config.set_authentication_policy(
       authentication.AuthTktAuthenticationPolicy(

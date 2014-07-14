@@ -13,7 +13,7 @@ from pyramid.view import view_defaults
 from .. import models
 
 
-@view_defaults(context='..resources.Session', renderer='json')
+@view_defaults(context='..resources.Session')
 class SessionApi(object):
   def __init__(self, request):
     self.request = request
