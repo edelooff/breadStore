@@ -23,6 +23,11 @@ class Root(dict):
     self['klanten'] = Customer(self, 'klanten', request=request)
     self['session'] = Session(self, 'session')
 
+  def __acl__(self):
+    """Basic ACL allows public views and denies everything else."""
+    yield 'Allow', 'system.Everyone', 'none'
+    yield security.DENY_ALL
+
 
 class CustomerCollection(Resource):
   """Customer collection API."""
