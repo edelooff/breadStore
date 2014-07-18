@@ -7,7 +7,7 @@ import hashlib
 import bcrypt
 import sqlalchemy
 from sqlalchemy import (
-    Boolean, Date, Enum, Index, Integer, SmallInteger, String, Text, Unicode, text)
+    Boolean, Date, Enum, Integer, SmallInteger, String, Text, Unicode, text)
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
 from sqlalchemy.orm import relationship
@@ -89,8 +89,7 @@ class Dieet(Base):
 
 class Gezinslid(Base):
   __tablename__ = 'gezinslid'
-  __table_args__ = (
-      Index('klant', 'klant_id', 'naam', unique=True),)
+  __table_args__ = sqlalchemy.Index('klant', 'klant_id', 'naam', unique=True),
 
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
@@ -195,8 +194,8 @@ class Medewerker(Base):
 
 class Pakket(Base):
   __tablename__ = 'pakket'
-  __table_args__ = (
-      Index('abonnement', 'abonnement_id', 'volgnummer', unique=True),)
+  __table_args__ = sqlalchemy.Index(
+      'abonnement', 'abonnement_id', 'volgnummer', unique=True),
 
   id = Column(Integer, primary_key=True)
   abonnement_id = Column(ForeignKey('abonnement.id'))
@@ -260,8 +259,8 @@ t_rol_permissie = sqlalchemy.Table(
 
 class UitgifteCyclus(Base):
   __tablename__ = 'uitgifte_cyclus'
-  __table_args__ = (
-      Index('uitgifte', 'ophaaldag', 'locatie_id', unique=True),)
+  __table_args__ = sqlalchemy.Index(
+      'uitgifte', 'ophaaldag', 'locatie_id', unique=True),
 
   id = Column(SmallInteger, primary_key=True)
   omschrijving = Column(Unicode(64))
