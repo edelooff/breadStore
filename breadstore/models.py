@@ -7,7 +7,7 @@ import hashlib
 import bcrypt
 import sqlalchemy
 from sqlalchemy import (
-    Boolean, Date, Enum, Integer, SmallInteger, String, Text, Unicode, text)
+    Boolean, Date, Enum, Integer, SmallInteger, String, Text, Unicode)
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
 from sqlalchemy.orm import relationship
@@ -134,7 +134,7 @@ class KlantStatus(Base):
   opmerking = Column(Text, server_default='')
   wijzigingsdatum = Column(Date, nullable=True)
   medewerker_id = Column(ForeignKey('medewerker.id'))
-  update_tijd = Column(types.TIMESTAMP, server_default=text(
+  update_tijd = Column(types.TIMESTAMP, server_default=sqlalchemy.text(
       'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
   klant = relationship('Klant')
@@ -226,7 +226,7 @@ class PakketStatus(Base):
   malus = Column(Boolean, server_default='0')
   medewerker_id = Column(ForeignKey('medewerker.id'))
   update_tijd = Column(
-      types.TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+      types.TIMESTAMP, server_default=sqlalchemy.text('CURRENT_TIMESTAMP'))
 
   medewerker = relationship('Medewerker')
   pakket = relationship('Pakket')
