@@ -18,6 +18,9 @@ class Resource(object):
 
 class Root(dict):
   """Root resource factory."""
+  __parent__ = None
+  __name__ = None
+
   def __init__(self, request):
     self.request = request
     self['klanten'] = Customer(self, 'klanten', request=request)
