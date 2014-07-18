@@ -20,6 +20,5 @@ def notfound_view(request):
 def error_response(request, message, code=400, **kwds):
   """Creates an error response by setting the code and message."""
   kwds.setdefault('error', message)
-  kwds.setdefault('error_code', code)
-  request.response.status_int = kwds['error_code']
+  request.response.status_int = code
   return kwds
