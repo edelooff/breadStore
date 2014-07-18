@@ -1,4 +1,4 @@
-# coding: utf-8
+"""breadStore model definitions."""
 
 # Standard modyles
 import hashlib
