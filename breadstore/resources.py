@@ -32,7 +32,7 @@ class Root(dict):
 
   def __init__(self, request):
     self.request = request
-    self['klanten'] = Customer(self, 'klanten', request=request)
+    self['klanten'] = CustomerCollection(self, 'klanten', request=request)
     self['session'] = Session(self, 'session')
 
   def __acl__(self):
