@@ -11,6 +11,7 @@ from pyramid.view import view_defaults
 
 # Application modules
 from .. import models
+from .. import schemas
 
 
 @view_defaults(context='..resources.Session')
@@ -31,9 +32,10 @@ class SessionApi(object):
     Returns 401 Unautorized if either the login or password is incorrect.
     Returns 303 See Other to retrieve the principals if they are correct.
     """
+    schema = schemas.load(schemas.Login, self.request)
     user = self.request.db.query(models.Medewerker).filter(
-        models.Medewerker.login == self.request.json_body['login']).first()
-    if user and user.verify_password(self.request.json_body['password']):
+        models.Medewerker.login == schema['login']).first()
+    if user and user.verify_password(schema['password']):
       auth_ticket = security.remember(self.request, user.id)
       return exc.HTTPSeeOther('/session', headers=auth_ticket)
     return exc.HTTPUnauthorized(json={'error': 'bad credentials'})
