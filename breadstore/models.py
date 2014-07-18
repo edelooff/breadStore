@@ -1,4 +1,4 @@
-# coding: utf-8
+"""breadStore model definitions."""
 
 # Standard modyles
 import hashlib
@@ -7,7 +7,7 @@ import hashlib
 import bcrypt
 import sqlalchemy
 from sqlalchemy import (
-    Boolean, Date, Enum, Index, Integer, SmallInteger, String, Text, text)
+    Boolean, Date, Enum, Integer, SmallInteger, String, Text, Unicode)
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
 from sqlalchemy.orm import relationship
@@ -42,7 +42,7 @@ class Abonnement(Base):
   datum_start = Column(Date)
   datum_einde = Column(Date, nullable=True, index=True)
   pakket_aantal = Column(SmallInteger)
-  opmerking = Column(String(200))
+  opmerking = Column(Unicode(200))
 
   klant = relationship('Klant')
   uitgifte_cyclus = relationship('UitgifteCyclus')
@@ -60,13 +60,13 @@ class Contactpersoon(Base):
 
   id = Column(SmallInteger, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
-  rol = Column(String(32), server_default='')
-  naam = Column(String(64))
+  rol = Column(Unicode(32), server_default='')
+  naam = Column(Unicode(64))
   telefoonnummer = Column(String(10), nullable=True)
   email_adres = Column(String(64), nullable=True)
-  adres_straat = Column(String(64), nullable=True)
+  adres_straat = Column(Unicode(64), nullable=True)
   adres_postcode = Column(String(6), nullable=True)
-  adres_plaats = Column(String(32), nullable=True)
+  adres_plaats = Column(Unicode(32), nullable=True)
 
   klant = relationship('Klant')
 
@@ -83,18 +83,17 @@ class Dieet(Base):
   __tablename__ = 'dieet'
 
   id = Column(SmallInteger, primary_key=True)
-  naam = Column(String(45))
+  naam = Column(Unicode(45))
   sticker_kleur = Column(String(16))
 
 
 class Gezinslid(Base):
   __tablename__ = 'gezinslid'
-  __table_args__ = (
-      Index('klant', 'klant_id', 'naam', unique=True),)
+  __table_args__ = sqlalchemy.Index('klant', 'klant_id', 'naam', unique=True),
 
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
-  naam = Column(String(90))
+  naam = Column(Unicode(90))
   geboorte_datum = Column(Date)
   geslacht = Column(Enum('onbekend', 'man', 'vrouw'))
 
@@ -106,15 +105,15 @@ class Klant(Base):
 
   id = Column(Integer, primary_key=True)
   klantcode = Column(types.CHAR(8), unique=True)
-  voorletters = Column(String(16), server_default='')
-  tussenvoegsel = Column(String(16), server_default='')
-  achternaam = Column(String(32))
+  voorletters = Column(Unicode(16), server_default='')
+  tussenvoegsel = Column(Unicode(16), server_default='')
+  achternaam = Column(Unicode(32))
   geslacht = Column(Enum('onbekend', 'man', 'vrouw'))
   geboorte_datum = Column(Date, nullable=True)
   email_adres = Column(String(64), nullable=True)
-  adres_straat = Column(String(64))
+  adres_straat = Column(Unicode(64))
   adres_postcode = Column(types.CHAR(6))
-  adres_plaats = Column(String(32))
+  adres_plaats = Column(Unicode(32))
 
 
 class KlantFoto(Klant):
@@ -135,7 +134,7 @@ class KlantStatus(Base):
   opmerking = Column(Text, server_default='')
   wijzigingsdatum = Column(Date, nullable=True)
   medewerker_id = Column(ForeignKey('medewerker.id'))
-  update_tijd = Column(types.TIMESTAMP, server_default=text(
+  update_tijd = Column(types.TIMESTAMP, server_default=sqlalchemy.text(
       'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
   klant = relationship('Klant')
@@ -157,14 +156,14 @@ class Locatie(Base):
   __tablename__ = 'locatie'
 
   id = Column(SmallInteger, primary_key=True)
-  naam = Column(String(45))
+  naam = Column(Unicode(45))
 
 
 class Medewerker(Base):
   __tablename__ = 'medewerker'
 
   id = Column(SmallInteger, primary_key=True)
-  naam = Column(String(32))
+  naam = Column(Unicode(32))
   email_adres = Column(String(64))
   rol_id = Column(StrictForeignKey('rol.id'))
   actief = Column(Boolean, server_default='1')
@@ -182,7 +181,7 @@ class Medewerker(Base):
     """Checks the provided password against the stored hash."""
     password = password.encode('utf8')
     if self.wachtwoord.startswith('$2a$'):
-      pw_hash = bcrypt.hashpw(password, str(self.wachtwoord))
+      pw_hash = bcrypt.hashpw(password, self.wachtwoord)
       return pw_hash == self.wachtwoord
     salt = self.wachtwoord[:16].decode('hex')
     result = ''
@@ -195,8 +194,8 @@ class Medewerker(Base):
 
 class Pakket(Base):
   __tablename__ = 'pakket'
-  __table_args__ = (
-      Index('abonnement', 'abonnement_id', 'volgnummer', unique=True),)
+  __table_args__ = sqlalchemy.Index(
+      'abonnement', 'abonnement_id', 'volgnummer', unique=True),
 
   id = Column(Integer, primary_key=True)
   abonnement_id = Column(ForeignKey('abonnement.id'))
@@ -213,7 +212,7 @@ class PakketGrootte(Base):
   id = Column(SmallInteger, primary_key=True)
   code = Column(types.CHAR(1))
   min_gezinsgrootte = Column(SmallInteger)
-  omschrijving = Column(String(45), server_default='')
+  omschrijving = Column(Unicode(45), server_default='')
 
 
 class PakketStatus(Base):
@@ -227,7 +226,7 @@ class PakketStatus(Base):
   malus = Column(Boolean, server_default='0')
   medewerker_id = Column(ForeignKey('medewerker.id'))
   update_tijd = Column(
-      types.TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+      types.TIMESTAMP, server_default=sqlalchemy.text('CURRENT_TIMESTAMP'))
 
   medewerker = relationship('Medewerker')
   pakket = relationship('Pakket')
@@ -246,7 +245,7 @@ class Rol(Base):
 
   id = Column(SmallInteger, primary_key=True)
   naam = Column(String(32))
-  omschrijving = Column(String(200))
+  omschrijving = Column(Unicode(200))
 
   permissies = relationship('Permissie', secondary='rol_permissie')
 
@@ -260,11 +259,11 @@ t_rol_permissie = sqlalchemy.Table(
 
 class UitgifteCyclus(Base):
   __tablename__ = 'uitgifte_cyclus'
-  __table_args__ = (
-      Index('uitgifte', 'ophaaldag', 'locatie_id', unique=True),)
+  __table_args__ = sqlalchemy.Index(
+      'uitgifte', 'ophaaldag', 'locatie_id', unique=True),
 
   id = Column(SmallInteger, primary_key=True)
-  omschrijving = Column(String(64))
+  omschrijving = Column(Unicode(64))
   ophaaldag = Column(Integer)
   locatie_id = Column(ForeignKey('locatie.id'))
   actief = Column(Boolean, server_default='1')
