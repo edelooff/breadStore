@@ -7,6 +7,15 @@ from pyramid import security
 from . import models
 
 
+class ApiError(Exception):
+  """Generic API exception."""
+  def __init__(self, message, code=400, **kwds):
+    super(ApiError, self).__init__(message)
+    self.mesage = message
+    self.code = code
+    self.kwds = kwds
+
+
 class Resource(object):
   """Baseclass for non-Root resources."""
   def __init__(self, parent, name, **kwds):
