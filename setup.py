@@ -6,6 +6,7 @@ from setuptools import setup, find_packages
 
 REQUIREMENTS = [
     'bcrypt',
+    'colander',
     'mysql-python',
     'pyramid',
     'pyramid_debugtoolbar',
