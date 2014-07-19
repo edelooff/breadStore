@@ -5,6 +5,21 @@ from pyramid import httpexceptions as exc
 from pyramid.view import view_config
 
 
+@view_config(context='colander.Invalid')
+def schema_validation_error(validation_result, request):
+  """Handles schema validation errors."""
+  return error_response(
+      request,
+      'schema validation error, details provided in "invalid".',
+      invalid=validation_result.asdict())
+
+
+@view_config(context='..resources.ApiError')
+def bad_request_body(err, request):
+  """Handles API usage errors."""
+  return error_response(request, err.message, code=err.code, **err.kwds)
+
+
 @view_config(context=exc.HTTPForbidden)
 def forbidden_view(request):
   """Handles requests that the client is forbidden from performing."""
@@ -20,6 +35,5 @@ def notfound_view(request):
 def error_response(request, message, code=400, **kwds):
   """Creates an error response by setting the code and message."""
   kwds.setdefault('error', message)
-  kwds.setdefault('error_code', code)
-  request.response.status_int = kwds['error_code']
+  request.response.status_int = code
   return kwds
