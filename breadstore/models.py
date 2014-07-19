@@ -17,6 +17,9 @@ Base = declarative.declarative_base()
 metadata = Base.metadata
 
 
+# ##############################################################################
+# Utility functions to simplify model declaration
+#
 def Column(sql_type, *args, **kwds):
   kwds.setdefault('nullable', False)
   return sqlalchemy.Column(sql_type, *args, **kwds)
@@ -33,6 +36,9 @@ def StrictForeignKey(field, **kwds):
   return ForeignKey(field, **kwds)
 
 
+# ##############################################################################
+# The actual breadStore model definition
+#
 class Abonnement(Base):
   __tablename__ = 'abonnement'
 
