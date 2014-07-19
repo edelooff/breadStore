@@ -1,7 +1,9 @@
 """breadStore model definitions."""
 
 # Standard modyles
+import datetime
 import hashlib
+import pytz
 
 # Third-party modules
 import bcrypt
@@ -10,13 +12,78 @@ from sqlalchemy import (
     Boolean, Date, Enum, Integer, SmallInteger, String, Text, Unicode)
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
-from sqlalchemy.orm import relationship
+from sqlalchemy import orm
+
+# Application modules
+from . import util
+
+# ##############################################################################
+# Declarative base for SQLAlchemy and ORM to JSON conversion
+#
+def orm_to_json(self, request=None):
+  """Converts all the properties of the object into a dict for use in JSON.
+
+  You can define the following in your class
+
+  _base_blacklist :
+      top level blacklist list of which properties not to include in JSON.
+
+  _json_blacklist :
+      blacklist list of which properties not to include in JSON.
+
+  _json_eager_load :
+      list of relations which need to be eagerly loaded. This applies to
+      one-to-one and one-to-many relationships defined in SQLAlchemy classes.
+  """
+  prefixes_to_ignore = '__', '_sa_'
+  json_result = {}
+
+  # Set up the blacklist from its various sources
+  blacklist = set(getattr(self, '_base_blacklist', []))
+  blacklist.update(getattr(self, '_json_blacklist', []))
+
+  # Request all attributes marked for eager loading
+  json_eager_load = set(getattr(self, '_json_eager_load', []))
+  for attr in json_eager_load:
+    getattr(self, attr, None)
+
+  # Make a copy of keys and add properties to include in the output
+  for key in set(vars(self)) | json_eager_load:
+    # skip blacklisted, private and SQLAlchemy properties
+    if key in blacklist or key.startswith(prefixes_to_ignore):
+      continue
+    attr = getattr(self, key)
+
+    if isinstance(attr, datetime.date):
+      attr = attr.isoformat()
+    elif isinstance(attr, (datetime.datetime, datetime.time)):
+      attr = pytz.utc.localize(attr).isoformat()
+    else:
+      if isinstance(attr, Base):
+        # Non-list relationship, recursively convert to JSON
+        attr = attr.__json__(request)
+      elif isinstance(attr, orm.collections.InstrumentedList):
+        # List of related objects, iterate and convert all to JSON
+        attr = [x.__json__(request) for x in attr]
+      else:
+        # convert all non float or integer objects to string or if string
+        # conversion is not possible, convert it to Unicode
+        if attr and not isinstance(attr, (int, float)):
+          try:
+            attr = str(attr)
+          except UnicodeEncodeError:
+            attr = unicode(attr)  # .encode('utf-8')
+    # Change naming convention on the key to match JSON norms and store attr
+    json_result[util.case_transform_json(key)] = attr
+  return json_result
 
 
 Base = declarative.declarative_base()
-metadata = Base.metadata
+Base.__json__ = orm_to_json
 
-
+# ##############################################################################
+# Utility functions to simplify model declaration
+#
 def Column(sql_type, *args, **kwds):
   kwds.setdefault('nullable', False)
   return sqlalchemy.Column(sql_type, *args, **kwds)
@@ -33,6 +100,9 @@ def StrictForeignKey(field, **kwds):
   return ForeignKey(field, **kwds)
 
 
+# ##############################################################################
+# The actual breadStore model definition
+#
 class Abonnement(Base):
   __tablename__ = 'abonnement'
 
@@ -44,13 +114,14 @@ class Abonnement(Base):
   pakket_aantal = Column(SmallInteger)
   opmerking = Column(Unicode(200))
 
-  klant = relationship('Klant')
-  uitgifte_cyclus = relationship('UitgifteCyclus')
-  dieets = relationship('Dieet', secondary='abonnement_dieet')
+  klant = orm.relationship('Klant')
+  uitgifte_cyclus = orm.relationship('UitgifteCyclus')
+  dieets = orm.relationship('Dieet', secondary='abonnement_dieet')
 
 
 t_abonnement_dieet = sqlalchemy.Table(
-    'abonnement_dieet', metadata,
+    'abonnement_dieet',
+    Base.metadata,
     Column('abonnement_id', ForeignKey('abonnement.id'), primary_key=True),
     Column('dieet_id', ForeignKey('dieet.id'), primary_key=True))
 
@@ -68,7 +139,7 @@ class Contactpersoon(Base):
   adres_postcode = Column(String(6), nullable=True)
   adres_plaats = Column(Unicode(32), nullable=True)
 
-  klant = relationship('Klant')
+  klant = orm.relationship('Klant')
 
 
 class Datumwijziging(Base):
@@ -97,7 +168,7 @@ class Gezinslid(Base):
   geboorte_datum = Column(Date)
   geslacht = Column(Enum('onbekend', 'man', 'vrouw'))
 
-  klant = relationship('Klant')
+  klant = orm.relationship('Klant')
 
 
 class Klant(Base):
@@ -137,8 +208,8 @@ class KlantStatus(Base):
   update_tijd = Column(types.TIMESTAMP, server_default=sqlalchemy.text(
       'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
-  klant = relationship('Klant')
-  medewerker = relationship('Medewerker')
+  klant = orm.relationship('Klant')
+  medewerker = orm.relationship('Medewerker')
 
 
 class KlantTelefoonnummer(Base):
@@ -149,7 +220,7 @@ class KlantTelefoonnummer(Base):
   soort = Column(Enum('mobiel', 'thuis', 'werk'))
   nummer = Column(String(10))
 
-  klant = relationship('Klant')
+  klant = orm.relationship('Klant')
 
 
 class Locatie(Base):
@@ -170,7 +241,7 @@ class Medewerker(Base):
   login = Column(String(32))
   wachtwoord = Column(String(80))
 
-  rol = relationship('Rol')
+  rol = orm.relationship('Rol')
 
   def set_password(self, password, work_factor=10):
     """(Re)sets the password for the user."""
@@ -202,8 +273,8 @@ class Pakket(Base):
   volgnummer = Column(Integer)
   pakket_grootte_id = Column(StrictForeignKey('pakket_grootte.id'))
 
-  abonnement = relationship('Abonnement')
-  pakket_grootte = relationship('PakketGrootte')
+  abonnement = orm.relationship('Abonnement')
+  pakket_grootte = orm.relationship('PakketGrootte')
 
 
 class PakketGrootte(Base):
@@ -228,8 +299,8 @@ class PakketStatus(Base):
   update_tijd = Column(
       types.TIMESTAMP, server_default=sqlalchemy.text('CURRENT_TIMESTAMP'))
 
-  medewerker = relationship('Medewerker')
-  pakket = relationship('Pakket')
+  medewerker = orm.relationship('Medewerker')
+  pakket = orm.relationship('Pakket')
 
 
 class Permissie(Base):
@@ -247,12 +318,12 @@ class Rol(Base):
   naam = Column(String(32))
   omschrijving = Column(Unicode(200))
 
-  permissies = relationship('Permissie', secondary='rol_permissie')
+  permissies = orm.relationship('Permissie', secondary='rol_permissie')
 
 
 t_rol_permissie = sqlalchemy.Table(
     'rol_permissie',
-    metadata,
+    Base.metadata,
     Column('rol_id', ForeignKey('rol.id'), primary_key=True),
     Column('permissie_id', ForeignKey('permissie.id'), primary_key=True))
 
@@ -269,4 +340,4 @@ class UitgifteCyclus(Base):
   actief = Column(Boolean, server_default='1')
   kleur = Column(types.CHAR(6))
 
-  locatie = relationship('Locatie')
+  locatie = orm.relationship('Locatie')
