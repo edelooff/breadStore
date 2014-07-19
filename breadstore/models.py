@@ -48,7 +48,7 @@ def orm_to_json(self, request=None):
     getattr(self, attr, None)
 
   # Make a copy of keys and add properties to include in the output
-  for key in set(self.__dict__.iterkeys()) | json_eager_load:
+  for key in set(vars(self)) | json_eager_load:
     # skip blacklisted, private and SQLAlchemy properties
     if key in blacklist or key.startswith(prefixes_to_ignore):
       continue
