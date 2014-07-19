@@ -11,6 +11,7 @@ REQUIREMENTS = [
     'pyramid',
     'pyramid_debugtoolbar',
     'pyramid_tm',
+    'pytz',
     'simplejson',
     'sqlalchemy',
     'transaction',
