@@ -10,7 +10,7 @@ from sqlalchemy import (
     Boolean, Date, Enum, Integer, SmallInteger, String, Text, Unicode)
 from sqlalchemy.dialects import mysql as types
 from sqlalchemy.ext import declarative
-from sqlalchemy.orm import relationship
+from sqlalchemy import orm
 
 
 Base = declarative.declarative_base()
@@ -50,13 +50,14 @@ class Abonnement(Base):
   pakket_aantal = Column(SmallInteger)
   opmerking = Column(Unicode(200))
 
-  klant = relationship('Klant')
-  uitgifte_cyclus = relationship('UitgifteCyclus')
-  dieets = relationship('Dieet', secondary='abonnement_dieet')
+  klant = orm.relationship('Klant')
+  uitgifte_cyclus = orm.relationship('UitgifteCyclus')
+  dieets = orm.relationship('Dieet', secondary='abonnement_dieet')
 
 
 t_abonnement_dieet = sqlalchemy.Table(
-    'abonnement_dieet', metadata,
+    'abonnement_dieet',
+    Base.metadata,
     Column('abonnement_id', ForeignKey('abonnement.id'), primary_key=True),
     Column('dieet_id', ForeignKey('dieet.id'), primary_key=True))
 
@@ -74,7 +75,7 @@ class Contactpersoon(Base):
   adres_postcode = Column(String(6), nullable=True)
   adres_plaats = Column(Unicode(32), nullable=True)
 
-  klant = relationship('Klant')
+  klant = orm.relationship('Klant')
 
 
 class Datumwijziging(Base):
@@ -103,7 +104,7 @@ class Gezinslid(Base):
   geboorte_datum = Column(Date)
   geslacht = Column(Enum('onbekend', 'man', 'vrouw'))
 
-  klant = relationship('Klant')
+  klant = orm.relationship('Klant')
 
 
 class Klant(Base):
@@ -143,8 +144,8 @@ class KlantStatus(Base):
   update_tijd = Column(types.TIMESTAMP, server_default=sqlalchemy.text(
       'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'))
 
-  klant = relationship('Klant')
-  medewerker = relationship('Medewerker')
+  klant = orm.relationship('Klant')
+  medewerker = orm.relationship('Medewerker')
 
 
 class KlantTelefoonnummer(Base):
@@ -155,7 +156,7 @@ class KlantTelefoonnummer(Base):
   soort = Column(Enum('mobiel', 'thuis', 'werk'))
   nummer = Column(String(10))
 
-  klant = relationship('Klant')
+  klant = orm.relationship('Klant')
 
 
 class Locatie(Base):
@@ -176,7 +177,7 @@ class Medewerker(Base):
   login = Column(String(32))
   wachtwoord = Column(String(80))
 
-  rol = relationship('Rol')
+  rol = orm.relationship('Rol')
 
   def set_password(self, password, work_factor=10):
     """(Re)sets the password for the user."""
@@ -208,8 +209,8 @@ class Pakket(Base):
   volgnummer = Column(Integer)
   pakket_grootte_id = Column(StrictForeignKey('pakket_grootte.id'))
 
-  abonnement = relationship('Abonnement')
-  pakket_grootte = relationship('PakketGrootte')
+  abonnement = orm.relationship('Abonnement')
+  pakket_grootte = orm.relationship('PakketGrootte')
 
 
 class PakketGrootte(Base):
@@ -234,8 +235,8 @@ class PakketStatus(Base):
   update_tijd = Column(
       types.TIMESTAMP, server_default=sqlalchemy.text('CURRENT_TIMESTAMP'))
 
-  medewerker = relationship('Medewerker')
-  pakket = relationship('Pakket')
+  medewerker = orm.relationship('Medewerker')
+  pakket = orm.relationship('Pakket')
 
 
 class Permissie(Base):
@@ -253,12 +254,12 @@ class Rol(Base):
   naam = Column(String(32))
   omschrijving = Column(Unicode(200))
 
-  permissies = relationship('Permissie', secondary='rol_permissie')
+  permissies = orm.relationship('Permissie', secondary='rol_permissie')
 
 
 t_rol_permissie = sqlalchemy.Table(
     'rol_permissie',
-    metadata,
+    Base.metadata,
     Column('rol_id', ForeignKey('rol.id'), primary_key=True),
     Column('permissie_id', ForeignKey('permissie.id'), primary_key=True))
 
@@ -275,4 +276,4 @@ class UitgifteCyclus(Base):
   actief = Column(Boolean, server_default='1')
   kleur = Column(types.CHAR(6))
 
-  locatie = relationship('Locatie')
+  locatie = orm.relationship('Locatie')
