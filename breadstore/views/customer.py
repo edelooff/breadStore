@@ -51,6 +51,10 @@ class CustomerView(object):
       setattr(self.customer, key, value)
     return {'klant': self.customer}
 
+  @view_config(name='abonnementen', request_method='GET', permission='view')
+  def list_subscriptions(self):
+    return {'abonnementen': self.customer.abonnementen}
+
 
 def load_customer_schema(request):
   """Loads the customer schema and sets a customer code if it's None."""
