@@ -27,9 +27,7 @@ class CustomerCollectionView(object):
   @view_config(request_method='POST', permission='create')
   def create(self):
     """Creates a new customer and returns a single object response."""
-    schema = schemas.load(schemas.Customer, self.request)
-    if not schema['klantcode']:
-      schema['klantcode'] = util.timebased_customer_code()
+    schema = load_customer_schema(self.request)
     customer = models.Klant(**schema)
     self.request.db.add(customer)
     self.request.db.flush()
@@ -51,9 +49,15 @@ class CustomerView(object):
   @view_config(request_method='PUT', permission='update')
   def update(self):
     """Updates an existing customer."""
-    schema = schemas.load(schemas.Customer, self.request)
-    if not schema['klantcode']:
-      schema['klantcode'] = util.timebased_customer_code()
+    schema = load_customer_schema(self.request)
     for key, value in schema.iteritems():
       setattr(self.customer, key, value)
     return {'klant': self.customer}
+
+
+def load_customer_schema(request):
+  """Loads the customer schema and sets a customer code if it's None."""
+  schema = schemas.load(schemas.Customer, request)
+  if not schema['klantcode']:
+    schema['klantcode'] = util.timebased_customer_code()
+  return schema
