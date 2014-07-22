@@ -1,8 +1,5 @@
 """breadStore API views - customer module."""
 
-# Standard modules
-import datetime
-
 # Third-party modules
 from pyramid.view import view_config
 from pyramid.view import view_defaults
