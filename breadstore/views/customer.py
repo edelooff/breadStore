@@ -47,3 +47,13 @@ class CustomerView(object):
   def get(self):
     """Returns the information of a customer."""
     return {'klant': self.customer}
+
+  @view_config(request_method='PUT', permission='update')
+  def update(self):
+    """Updates an existing customer."""
+    schema = schemas.load(schemas.Customer, self.request)
+    if not schema['klantcode']:
+      schema['klantcode'] = util.timebased_customer_code()
+    for key, value in schema.iteritems():
+      setattr(self.customer, key, value)
+    return {'klant': self.customer}
