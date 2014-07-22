@@ -106,6 +106,7 @@ def StrictForeignKey(field, **kwds):
 class Abonnement(Base):
   __tablename__ = 'abonnement'
 
+  # Column definitions
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
   uitgifte_cyclus_id = Column(StrictForeignKey('uitgifte_cyclus.id'))
@@ -114,7 +115,7 @@ class Abonnement(Base):
   pakket_aantal = Column(SmallInteger)
   opmerking = Column(Unicode(200))
 
-  klant = orm.relationship('Klant')
+  # Relationships
   uitgifte_cyclus = orm.relationship('UitgifteCyclus')
   dieets = orm.relationship('Dieet', secondary='abonnement_dieet')
 
@@ -174,6 +175,7 @@ class Gezinslid(Base):
 class Klant(Base):
   __tablename__ = 'klant'
 
+  # Column definitions
   id = Column(Integer, primary_key=True)
   klantcode = Column(types.CHAR(8), unique=True)
   voorletters = Column(Unicode(16), server_default='')
@@ -185,6 +187,12 @@ class Klant(Base):
   adres_straat = Column(Unicode(64))
   adres_postcode = Column(types.CHAR(6))
   adres_plaats = Column(Unicode(32))
+
+  # Relationships
+  abonnementen = orm.relationship(
+      'Abonnement',
+      backref='klant',
+      passive_deletes=True)
 
 
 class KlantFoto(Klant):
