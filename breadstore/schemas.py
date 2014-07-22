@@ -22,6 +22,44 @@ def load(schema, request, content_type='application/json'):
   return schema().deserialize(util.dict_keys_python(values))
 
 
+class Customer(colander.MappingSchema):
+  """Schema for a customer, creation and/or updates."""
+  klantcode = colander.SchemaNode(
+      colander.String(),
+      missing=None,
+      validator=colander.Length(min=8, max=8))
+  voorletters = colander.SchemaNode(
+      colander.String(),
+      missing='',
+      validator=colander.Length(max=16))
+  tussenvoegsel = colander.SchemaNode(
+      colander.String(),
+      missing='',
+      validator=colander.Length(max=16))
+  achternaam = colander.SchemaNode(
+      colander.String(),
+      validator=colander.Length(max=32))
+  geslacht = colander.SchemaNode(
+      colander.String(),
+      validator=colander.OneOf(['onbekend', 'man', 'vrouw']))
+  geboorte_datum = colander.SchemaNode(
+      colander.Date(),
+      missing=None)
+  email_adres = colander.SchemaNode(
+      colander.String(),
+      missing=None,
+      validator=colander.All(colander.Email(), colander.Length(max=64)))
+  adres_straat = colander.SchemaNode(
+      colander.String(),
+      validator=colander.Length(max=64))
+  adres_postcode = colander.SchemaNode(
+      colander.String(),
+      validator=colander.Length(min=6, max=6))
+  adres_plaats = colander.SchemaNode(
+      colander.String(),
+      validator=colander.Length(max=32))
+
+
 class Login(colander.MappingSchema):
   """Schema for logging in, requires a login name and password."""
   login = colander.SchemaNode(colander.String())
