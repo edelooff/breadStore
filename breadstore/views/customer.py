@@ -9,6 +9,8 @@ from pyramid.view import view_defaults
 
 # Application modules
 from .. import models
+from .. import schemas
+from .. import util
 
 
 @view_defaults(context='..resources.CustomerCollection')
@@ -21,6 +23,17 @@ class CustomerCollectionView(object):
   def list(self):
     """Returns a list of customers in the system."""
     return {'klanten': self.request.db.query(models.Klant).all()}
+
+  @view_config(request_method='POST', permission='create')
+  def create(self):
+    """Creates a new customer and returns a single object response."""
+    schema = schemas.load(schemas.Customer, self.request)
+    if not schema['klantcode']:
+      schema['klantcode'] = util.timebased_customer_code()
+    customer = models.Klant(**schema)
+    self.request.db.add(customer)
+    self.request.db.flush()
+    return {'klant': customer}
 
 
 @view_defaults(context='..resources.Customer')
