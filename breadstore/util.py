@@ -1,7 +1,11 @@
 """breadStore API utilities library."""
 
 # Standard modules
+import base64
+import random
 import re
+import struct
+import time
 
 
 def case_transform_python(name):
@@ -36,3 +40,10 @@ def mapping_visitor(mapping, key_func):
       item = mapping_visitor(item, key_func)
     transformed[key_func(key)] = item
   return transformed
+
+
+def timebased_customer_code(offset=0):
+  """Current time plus two random bytes to to generate a unique code."""
+  curtime = int(time.time() + offset) % 2 ** 31
+  code = struct.pack('<lB', curtime, random.randrange(256))
+  return base64.b32encode(code).lower()
