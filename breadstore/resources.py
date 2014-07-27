@@ -56,6 +56,7 @@ class CustomerCollection(Resource):
       customer = self.request.db.query(models.Klant).get(key)
       if customer:
         return Customer(self, key, customer=customer)
+    raise KeyError
 
 
 class Customer(Resource):
@@ -84,6 +85,7 @@ class SubscriptionCollection(Resource):
       subscription = self.request.db.query(models.Abonnement).get(key)
       if subscription:
         return Subscription(self, key, subscription=subscription)
+    raise KeyError
 
 
 class Subscription(Resource):
