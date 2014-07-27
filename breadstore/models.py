@@ -116,8 +116,12 @@ class Abonnement(Base):
   opmerking = Column(Unicode(200))
 
   # Relationships
+  klant = orm.relationship('Klant', uselist=False)
   uitgifte_cyclus = orm.relationship('UitgifteCyclus')
   dieets = orm.relationship('Dieet', secondary='abonnement_dieet')
+
+  # JSON blacklist
+  _base_blacklist = 'klant',
 
 
 t_abonnement_dieet = sqlalchemy.Table(
@@ -191,8 +195,13 @@ class Klant(Base):
   # Relationships
   abonnementen = orm.relationship(
       'Abonnement',
-      backref='klant',
       passive_deletes=True)
+
+  def add_subscription(self, **attrs):
+    """Adds a subscription to the customer."""
+    attrs['klant'] = self
+    self.abonnementen.append(Abonnement(**attrs))
+    return self.abonnementen[-1]
 
 
 class KlantFoto(Klant):
