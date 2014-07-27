@@ -53,6 +53,18 @@ class CustomerView(object):
 
   @view_config(name='abonnementen', request_method='GET', permission='view')
   def list_subscriptions(self):
+    """Lists the current subscriptions for the customer."""
+    return {'abonnementen': self.customer.abonnementen}
+
+  @view_config(
+      name='abonnementen',
+      request_method='POST',
+      permission='add_subscription')
+  def add_subscription(self):
+    """Adds a subscription for the customer and returns the new list."""
+    schema = schemas.load(schemas.Subscription, self.request)
+    self.customer.add_subscription(**schema)
+    self.request.db.flush()
     return {'abonnementen': self.customer.abonnementen}
 
 
