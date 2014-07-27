@@ -64,3 +64,17 @@ class Login(colander.MappingSchema):
   """Schema for logging in, requires a login name and password."""
   login = colander.SchemaNode(colander.String())
   password = colander.SchemaNode(colander.String())
+
+
+class Subscription(colander.MappingSchema):
+  """Schema to create or update an existing susbcription.
+
+  Whether or not a certain attribute may be updated depends on the current state
+  of the subscription. The start date may not be altered, unless the first
+  package has not been collection yet. The number of packages may not be reduced
+  below the level of currently handed out packages.
+  """
+  datum_start = colander.SchemaNode(colander.Date())
+  uitgifte_cyclus_id = colander.SchemaNode(colander.Integer())
+  opmerking = colander.SchemaNode(colander.String())
+  pakket_aantal = colander.SchemaNode(colander.Integer())
