@@ -76,5 +76,5 @@ class Subscription(colander.MappingSchema):
   """
   datum_start = colander.SchemaNode(colander.Date())
   uitgifte_cyclus_id = colander.SchemaNode(colander.Integer())
-  opmerking = colander.SchemaNode(colander.String())
+  opmerking = colander.SchemaNode(colander.String(), missing='')
   pakket_aantal = colander.SchemaNode(colander.Integer())

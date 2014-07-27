@@ -64,6 +64,7 @@ class Customer(Resource):
   def __acl__(self):
     yield 'Allow', 'priv:klant.aanpassen', 'update'
     yield 'Allow', 'priv:klant.verwijderen', 'delete'
+    yield 'Allow', 'priv:abonnement.aanmaken', 'add_subscription'
 
 
 class Session(Resource):
