@@ -32,6 +32,8 @@ class Root(dict):
 
   def __init__(self, request):
     self.request = request
+    self['abonnementen'] = SubscriptionCollection(
+        self, 'abonnementen', request=request)
     self['klanten'] = CustomerCollection(self, 'klanten', request=request)
     self['session'] = Session(self, 'session')
 
@@ -69,3 +71,26 @@ class Session(Resource):
     yield 'Allow', 'system.Everyone', 'login'
     yield 'Allow', 'system.Authenticated', 'get'
     yield 'Allow', 'system.Authenticated', 'logout'
+
+
+class SubscriptionCollection(Resource):
+  """Subscription collection exists for traversal purposes only.
+
+  Subscriptions can be listed/created in the context of a Customer only.
+  """
+  def __getitem__(self, key):
+    """Loads and returns a subscription based on its primary key."""
+    if key.isdigit():
+      subscription = self.request.db.query(models.Abonnement).get(key)
+      if subscription:
+        return Subscription(self, key, subscription=subscription)
+
+
+class Subscription(Resource):
+  """Subscription API for viewing, updating and suspending of subscription."""
+  def __acl__(self):
+    yield 'Allow', 'system.Authenticated', 'view'
+    yield 'Allow', 'priv:abonnement.aanpassen', 'update'
+    yield 'Allow', 'priv:abonnement.dieet.beheren', 'manage_diets'
+    yield 'Allow', 'priv:abonnement.stoppen', 'stop'
+    yield security.DENY_ALL
