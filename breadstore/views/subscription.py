@@ -7,6 +7,7 @@ from pyramid.view import view_defaults
 
 @view_defaults(context='..resources.Subscription')
 class SubscriptionView(object):
+  """Defines the singular customer API."""
   def __init__(self, context, request):
     self.request = request
     self.sub = context.subscription

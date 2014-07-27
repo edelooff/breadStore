@@ -33,7 +33,7 @@ class CustomerCollectionView(object):
 
 @view_defaults(context='..resources.Customer')
 class CustomerView(object):
-  """Defines the single customer API."""
+  """Defines the singular customer API."""
   def __init__(self, context, request):
     self.request = request
     self.customer = context.customer
