@@ -74,7 +74,18 @@ class Subscription(colander.MappingSchema):
   package has not been collection yet. The number of packages may not be reduced
   below the level of currently handed out packages.
   """
-  datum_start = colander.SchemaNode(colander.Date())
-  uitgifte_cyclus_id = colander.SchemaNode(colander.Integer())
-  opmerking = colander.SchemaNode(colander.String(), missing='')
-  pakket_aantal = colander.SchemaNode(colander.Integer())
+  datum_start = colander.SchemaNode(
+      colander.Date(),
+      missing=None)
+  uitgifte_cyclus_id = colander.SchemaNode(
+      colander.Integer())
+  opmerking = colander.SchemaNode(
+      colander.String(),
+      missing='',
+      validator=colander.Length(max=200))
+  pakket_aantal = colander.SchemaNode(
+      colander.Integer())
+
+  @colander.instantiate(missing=())
+  class dieten(colander.SequenceSchema):
+    dieet_id = colander.SchemaNode(colander.Integer())
