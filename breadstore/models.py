@@ -116,12 +116,22 @@ class Abonnement(Base):
   opmerking = Column(Unicode(200))
 
   # Relationships
-  klant = orm.relationship('Klant', uselist=False)
+  klant = orm.relationship('Klant')
   uitgifte_cyclus = orm.relationship('UitgifteCyclus')
-  dieets = orm.relationship('Dieet', secondary='abonnement_dieet')
+  dieets = orm.relationship(
+      'Dieet', secondary='abonnement_dieet')
+  pakketten = orm.relationship(
+      'Pakket', innerjoin=True, passive_deletes=True)
 
   # JSON blacklist
   _base_blacklist = 'klant',
+
+  def packages_provided(self):
+    """Returnst a list of packages that have been handed out to customers.
+
+    This excludes any packages that remain in planning phase.
+    """
+    return [package for package in self.pakketten if package.completed]
 
 
 t_abonnement_dieet = sqlalchemy.Table(
@@ -292,6 +302,18 @@ class Pakket(Base):
 
   abonnement = orm.relationship('Abonnement')
   pakket_grootte = orm.relationship('PakketGrootte')
+  statussen = orm.relationship(
+      'PakketStatus', innerjoin=True, lazy='joined', passive_deletes=True)
+
+  @property
+  def completed(self):
+    """Returns whether or not a package has been completed.
+
+    A package is completed when it is past its planned pickup date, and has not
+    been rescheduled. In this case, the most recent status should have
+    `verwerkt == True`.
+    """
+    return any(status.verwerkt for status in self.statussen)
 
 
 class PakketGrootte(Base):
