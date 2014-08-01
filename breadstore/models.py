@@ -213,8 +213,11 @@ class Klant(Base):
 
   # Relationships
   abonnementen = orm.relationship(
-      'Abonnement',
-      passive_deletes=True)
+      'Abonnement', passive_deletes=True)
+  contactpersonen = orm.relationship(
+      'Contactpersoon', passive_deletes=True)
+  gezin = orm.relationship(
+      'Gezinslid', passive_deletes=True)
 
   def add_subscription(self, **attrs):
     """Adds a subscription to the customer."""
@@ -222,6 +225,14 @@ class Klant(Base):
     self.abonnementen.append(Abonnement(**attrs))
     return self.abonnementen[-1]
 
+  def package_size(self):
+    """Returns the appropriate package size for the current family size."""
+    session = sqlalchemy.inspect(self).session
+    family_size = len(self.gezin) + 1  # Family members + self
+    required_size = PakketGrootte.min_gezinsgrootte
+    return session.query(PakketGrootte).\
+        filter(family_size >= required_size).\
+        order_by(required_size.desc()).first()
 
 
 class KlantFoto(Klant):
