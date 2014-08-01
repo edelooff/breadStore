@@ -20,66 +20,71 @@ from . import util
 # ##############################################################################
 # Declarative base for SQLAlchemy and ORM to JSON conversion
 #
-def orm_to_json(self, request=None):
-  """Converts all the properties of the object into a dict for use in JSON.
+def declarative_base(cls):
+  """Decorator for SQLAlchemy's declarative base."""
+  return declarative.declarative_base(cls=cls)
 
-  You can define the following in your class
 
-  _base_blacklist :
-      top level blacklist list of which properties not to include in JSON.
+@declarative_base
+class Base(object):
+  """Extended SQLAlchemy declarative base class."""
+  def __json__(self, request=None):
+    """Converts all the properties of the object into a dict for use in JSON.
 
-  _json_blacklist :
-      blacklist list of which properties not to include in JSON.
+    You can define the following in your class
 
-  _json_eager_load :
-      list of relations which need to be eagerly loaded. This applies to
-      one-to-one and one-to-many relationships defined in SQLAlchemy classes.
-  """
-  prefixes_to_ignore = '__', '_sa_'
-  json_result = {}
+    _base_blacklist :
+        top level blacklist list of which properties not to include in JSON.
 
-  # Set up the blacklist from its various sources
-  blacklist = set(getattr(self, '_base_blacklist', []))
-  blacklist.update(getattr(self, '_json_blacklist', []))
+    _json_blacklist :
+        blacklist list of which properties not to include in JSON.
 
-  # Request all attributes marked for eager loading
-  json_eager_load = set(getattr(self, '_json_eager_load', []))
-  for attr in json_eager_load:
-    getattr(self, attr, None)
+    _json_eager_load :
+        list of relations which need to be eagerly loaded. This applies to
+        one-to-one and one-to-many relationships defined in SQLAlchemy classes.
+    """
+    prefixes_to_ignore = '__', '_sa_'
+    json_result = {}
 
-  # Make a copy of keys and add properties to include in the output
-  for key in set(vars(self)) | json_eager_load:
-    # skip blacklisted, private and SQLAlchemy properties
-    if key in blacklist or key.startswith(prefixes_to_ignore):
-      continue
-    attr = getattr(self, key)
+    # Set up the blacklist from its various sources
+    blacklist = set(getattr(self, '_base_blacklist', []))
+    blacklist.update(getattr(self, '_json_blacklist', []))
 
-    if isinstance(attr, datetime.date):
-      attr = attr.isoformat()
-    elif isinstance(attr, (datetime.datetime, datetime.time)):
-      attr = pytz.utc.localize(attr).isoformat()
-    else:
-      if isinstance(attr, Base):
-        # Non-list relationship, recursively convert to JSON
-        attr = attr.__json__(request)
-      elif isinstance(attr, orm.collections.InstrumentedList):
-        # List of related objects, iterate and convert all to JSON
-        attr = [x.__json__(request) for x in attr]
+    # Request all attributes marked for eager loading
+    json_eager_load = set(getattr(self, '_json_eager_load', []))
+    for attr in json_eager_load:
+      getattr(self, attr, None)
+
+    # Make a copy of keys and add properties to include in the output
+    for key in set(vars(self)) | json_eager_load:
+      # skip blacklisted, private and SQLAlchemy properties
+      if key in blacklist or key.startswith(prefixes_to_ignore):
+        continue
+      attr = getattr(self, key)
+
+      if isinstance(attr, datetime.date):
+        attr = attr.isoformat()
+      elif isinstance(attr, (datetime.datetime, datetime.time)):
+        attr = pytz.utc.localize(attr).isoformat()
       else:
-        # convert all non float or integer objects to string or if string
-        # conversion is not possible, convert it to Unicode
-        if attr and not isinstance(attr, (int, float)):
-          try:
-            attr = str(attr)
-          except UnicodeEncodeError:
-            attr = unicode(attr)  # .encode('utf-8')
-    # Change naming convention on the key to match JSON norms and store attr
-    json_result[util.case_transform_json(key)] = attr
-  return json_result
+        if isinstance(attr, Base):
+          # Non-list relationship, recursively convert to JSON
+          attr = attr.__json__(request)
+        elif isinstance(attr, orm.collections.InstrumentedList):
+          # List of related objects, iterate and convert all to JSON
+          attr = [x.__json__(request) for x in attr]
+        else:
+          # convert all non float or integer objects to string or if string
+          # conversion is not possible, convert it to Unicode
+          if attr and not isinstance(attr, (int, float)):
+            try:
+              attr = str(attr)
+            except UnicodeEncodeError:
+              attr = unicode(attr)  # .encode('utf-8')
+      # Change naming convention on the key to match JSON norms and store attr
+      json_result[util.case_transform_json(key)] = attr
+    return json_result
 
-
-Base = declarative.declarative_base()
-Base.__json__ = orm_to_json
 
 # ##############################################################################
 # Utility functions to simplify model declaration
