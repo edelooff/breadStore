@@ -135,6 +135,15 @@ class Abonnement(Base):
   # JSON blacklist
   _base_blacklist = 'klant',
 
+  @property
+  def completed(self):
+    """Returns whether or not the subscription has been completed.
+
+    A subscription is considered complete when the provided package count is
+    equal to the package count planned for it.
+    """
+    return self.pakket_aantal == len(self.packages_provided())
+
   def packages_provided(self):
     """Returnst a list of packages that have been handed out to customers.
 
