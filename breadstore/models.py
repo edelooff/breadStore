@@ -4,6 +4,7 @@
 import datetime
 import hashlib
 import pytz
+import re
 
 # Third-party modules
 import bcrypt
@@ -28,6 +29,11 @@ def declarative_base(cls):
 @declarative_base
 class Base(object):
   """Extended SQLAlchemy declarative base class."""
+  @declarative.declared_attr
+  def __tablename__(cls):
+    underscorer = lambda match: '_{}'.format(match.group(0).lower())
+    return re.sub(r'[A-Z]', underscorer, cls.__name__).strip('_')
+
   def __json__(self, request=None):
     """Converts all the properties of the object into a dict for use in JSON.
 
@@ -109,8 +115,6 @@ def StrictForeignKey(field, **kwds):
 # The actual breadStore model definition
 #
 class Abonnement(Base):
-  __tablename__ = 'abonnement'
-
   # Column definitions
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
@@ -147,8 +151,6 @@ t_abonnement_dieet = sqlalchemy.Table(
 
 
 class Contactpersoon(Base):
-  __tablename__ = 'contactpersoon'
-
   id = Column(SmallInteger, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
   rol = Column(Unicode(32), server_default='')
@@ -163,23 +165,18 @@ class Contactpersoon(Base):
 
 
 class Datumwijziging(Base):
-  __tablename__ = 'datumwijziging'
-
   id = Column(SmallInteger, primary_key=True)
   planning = Column(Date, unique=True)
   aanpassing = Column(Date)
 
 
 class Dieet(Base):
-  __tablename__ = 'dieet'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(Unicode(45))
   sticker_kleur = Column(String(16))
 
 
 class Gezinslid(Base):
-  __tablename__ = 'gezinslid'
   __table_args__ = sqlalchemy.Index('klant', 'klant_id', 'naam', unique=True),
 
   id = Column(Integer, primary_key=True)
@@ -192,8 +189,6 @@ class Gezinslid(Base):
 
 
 class Klant(Base):
-  __tablename__ = 'klant'
-
   # Column definitions
   id = Column(Integer, primary_key=True)
   klantcode = Column(types.CHAR(8), unique=True)
@@ -219,16 +214,13 @@ class Klant(Base):
     return self.abonnementen[-1]
 
 
-class KlantFoto(Klant):
-  __tablename__ = 'klant_foto'
 
+class KlantFoto(Klant):
   klant_id = Column(ForeignKey('klant.id'), primary_key=True)
   foto = Column(types.MEDIUMBLOB)
 
 
 class KlantStatus(Base):
-  __tablename__ = 'klant_status'
-
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
   status = Column(Enum(
@@ -245,8 +237,6 @@ class KlantStatus(Base):
 
 
 class KlantTelefoonnummer(Base):
-  __tablename__ = 'klant_telefoonnummer'
-
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
   soort = Column(Enum('mobiel', 'thuis', 'werk'))
@@ -256,15 +246,11 @@ class KlantTelefoonnummer(Base):
 
 
 class Locatie(Base):
-  __tablename__ = 'locatie'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(Unicode(45))
 
 
 class Medewerker(Base):
-  __tablename__ = 'medewerker'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(Unicode(32))
   email_adres = Column(String(64))
@@ -296,7 +282,6 @@ class Medewerker(Base):
 
 
 class Pakket(Base):
-  __tablename__ = 'pakket'
   __table_args__ = sqlalchemy.Index(
       'abonnement', 'abonnement_id', 'volgnummer', unique=True),
 
@@ -322,8 +307,6 @@ class Pakket(Base):
 
 
 class PakketGrootte(Base):
-  __tablename__ = 'pakket_grootte'
-
   id = Column(SmallInteger, primary_key=True)
   code = Column(types.CHAR(1))
   min_gezinsgrootte = Column(SmallInteger)
@@ -331,8 +314,6 @@ class PakketGrootte(Base):
 
 
 class PakketStatus(Base):
-  __tablename__ = 'pakket_status'
-
   id = Column(Integer, primary_key=True)
   pakket_id = Column(ForeignKey('pakket.id'))
   ophaaldatum = Column(Date)
@@ -348,16 +329,12 @@ class PakketStatus(Base):
 
 
 class Permissie(Base):
-  __tablename__ = 'permissie'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(String(32))
   omschrijving = Column(Text)
 
 
 class Rol(Base):
-  __tablename__ = 'rol'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(String(32))
   omschrijving = Column(Unicode(200))
@@ -373,7 +350,6 @@ t_rol_permissie = sqlalchemy.Table(
 
 
 class UitgifteCyclus(Base):
-  __tablename__ = 'uitgifte_cyclus'
   __table_args__ = sqlalchemy.Index(
       'uitgifte', 'ophaaldag', 'locatie_id', unique=True),
 
