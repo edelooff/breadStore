@@ -4,6 +4,7 @@
 import datetime
 import hashlib
 import pytz
+import re
 
 # Third-party modules
 import bcrypt
@@ -20,66 +21,76 @@ from . import util
 # ##############################################################################
 # Declarative base for SQLAlchemy and ORM to JSON conversion
 #
-def orm_to_json(self, request=None):
-  """Converts all the properties of the object into a dict for use in JSON.
+def declarative_base(cls):
+  """Decorator for SQLAlchemy's declarative base."""
+  return declarative.declarative_base(cls=cls)
 
-  You can define the following in your class
 
-  _base_blacklist :
-      top level blacklist list of which properties not to include in JSON.
+@declarative_base
+class Base(object):
+  """Extended SQLAlchemy declarative base class."""
+  @declarative.declared_attr
+  def __tablename__(cls):
+    underscorer = lambda match: '_{}'.format(match.group(0).lower())
+    return re.sub(r'[A-Z]', underscorer, cls.__name__).strip('_')
 
-  _json_blacklist :
-      blacklist list of which properties not to include in JSON.
+  def __json__(self, request=None):
+    """Converts all the properties of the object into a dict for use in JSON.
 
-  _json_eager_load :
-      list of relations which need to be eagerly loaded. This applies to
-      one-to-one and one-to-many relationships defined in SQLAlchemy classes.
-  """
-  prefixes_to_ignore = '__', '_sa_'
-  json_result = {}
+    You can define the following in your class
 
-  # Set up the blacklist from its various sources
-  blacklist = set(getattr(self, '_base_blacklist', []))
-  blacklist.update(getattr(self, '_json_blacklist', []))
+    _base_blacklist :
+        top level blacklist list of which properties not to include in JSON.
 
-  # Request all attributes marked for eager loading
-  json_eager_load = set(getattr(self, '_json_eager_load', []))
-  for attr in json_eager_load:
-    getattr(self, attr, None)
+    _json_blacklist :
+        blacklist list of which properties not to include in JSON.
 
-  # Make a copy of keys and add properties to include in the output
-  for key in set(vars(self)) | json_eager_load:
-    # skip blacklisted, private and SQLAlchemy properties
-    if key in blacklist or key.startswith(prefixes_to_ignore):
-      continue
-    attr = getattr(self, key)
+    _json_eager_load :
+        list of relations which need to be eagerly loaded. This applies to
+        one-to-one and one-to-many relationships defined in SQLAlchemy classes.
+    """
+    prefixes_to_ignore = '__', '_sa_'
+    json_result = {}
 
-    if isinstance(attr, datetime.date):
-      attr = attr.isoformat()
-    elif isinstance(attr, (datetime.datetime, datetime.time)):
-      attr = pytz.utc.localize(attr).isoformat()
-    else:
-      if isinstance(attr, Base):
-        # Non-list relationship, recursively convert to JSON
-        attr = attr.__json__(request)
-      elif isinstance(attr, orm.collections.InstrumentedList):
-        # List of related objects, iterate and convert all to JSON
-        attr = [x.__json__(request) for x in attr]
+    # Set up the blacklist from its various sources
+    blacklist = set(getattr(self, '_base_blacklist', []))
+    blacklist.update(getattr(self, '_json_blacklist', []))
+
+    # Request all attributes marked for eager loading
+    json_eager_load = set(getattr(self, '_json_eager_load', []))
+    for attr in json_eager_load:
+      getattr(self, attr, None)
+
+    # Make a copy of keys and add properties to include in the output
+    for key in set(vars(self)) | json_eager_load:
+      # skip blacklisted, private and SQLAlchemy properties
+      if key in blacklist or key.startswith(prefixes_to_ignore):
+        continue
+      attr = getattr(self, key)
+
+      if isinstance(attr, datetime.date):
+        attr = attr.isoformat()
+      elif isinstance(attr, (datetime.datetime, datetime.time)):
+        attr = pytz.utc.localize(attr).isoformat()
       else:
-        # convert all non float or integer objects to string or if string
-        # conversion is not possible, convert it to Unicode
-        if attr and not isinstance(attr, (int, float)):
-          try:
-            attr = str(attr)
-          except UnicodeEncodeError:
-            attr = unicode(attr)  # .encode('utf-8')
-    # Change naming convention on the key to match JSON norms and store attr
-    json_result[util.case_transform_json(key)] = attr
-  return json_result
+        if isinstance(attr, Base):
+          # Non-list relationship, recursively convert to JSON
+          attr = attr.__json__(request)
+        elif isinstance(attr, orm.collections.InstrumentedList):
+          # List of related objects, iterate and convert all to JSON
+          attr = [x.__json__(request) for x in attr]
+        else:
+          # convert all non float or integer objects to string or if string
+          # conversion is not possible, convert it to Unicode
+          if attr and not isinstance(attr, (int, float)):
+            try:
+              attr = str(attr)
+            except UnicodeEncodeError:
+              attr = unicode(attr)  # .encode('utf-8')
+      # Change naming convention on the key to match JSON norms and store attr
+      json_result[util.case_transform_json(key)] = attr
+    return json_result
 
-
-Base = declarative.declarative_base()
-Base.__json__ = orm_to_json
 
 # ##############################################################################
 # Utility functions to simplify model declaration
@@ -104,8 +115,6 @@ def StrictForeignKey(field, **kwds):
 # The actual breadStore model definition
 #
 class Abonnement(Base):
-  __tablename__ = 'abonnement'
-
   # Column definitions
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
@@ -126,6 +135,15 @@ class Abonnement(Base):
   # JSON blacklist
   _base_blacklist = 'klant',
 
+  @property
+  def completed(self):
+    """Returns whether or not the subscription has been completed.
+
+    A subscription is considered complete when the provided package count is
+    equal to the package count planned for it.
+    """
+    return self.pakket_aantal == len(self.packages_provided())
+
   def packages_provided(self):
     """Returnst a list of packages that have been handed out to customers.
 
@@ -142,8 +160,6 @@ t_abonnement_dieet = sqlalchemy.Table(
 
 
 class Contactpersoon(Base):
-  __tablename__ = 'contactpersoon'
-
   id = Column(SmallInteger, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
   rol = Column(Unicode(32), server_default='')
@@ -158,23 +174,18 @@ class Contactpersoon(Base):
 
 
 class Datumwijziging(Base):
-  __tablename__ = 'datumwijziging'
-
   id = Column(SmallInteger, primary_key=True)
   planning = Column(Date, unique=True)
   aanpassing = Column(Date)
 
 
 class Dieet(Base):
-  __tablename__ = 'dieet'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(Unicode(45))
   sticker_kleur = Column(String(16))
 
 
 class Gezinslid(Base):
-  __tablename__ = 'gezinslid'
   __table_args__ = sqlalchemy.Index('klant', 'klant_id', 'naam', unique=True),
 
   id = Column(Integer, primary_key=True)
@@ -187,8 +198,6 @@ class Gezinslid(Base):
 
 
 class Klant(Base):
-  __tablename__ = 'klant'
-
   # Column definitions
   id = Column(Integer, primary_key=True)
   klantcode = Column(types.CHAR(8), unique=True)
@@ -204,8 +213,11 @@ class Klant(Base):
 
   # Relationships
   abonnementen = orm.relationship(
-      'Abonnement',
-      passive_deletes=True)
+      'Abonnement', passive_deletes=True)
+  contactpersonen = orm.relationship(
+      'Contactpersoon', passive_deletes=True)
+  gezin = orm.relationship(
+      'Gezinslid', passive_deletes=True)
 
   def add_subscription(self, **attrs):
     """Adds a subscription to the customer."""
@@ -213,17 +225,22 @@ class Klant(Base):
     self.abonnementen.append(Abonnement(**attrs))
     return self.abonnementen[-1]
 
+  def package_size(self):
+    """Returns the appropriate package size for the current family size."""
+    session = sqlalchemy.inspect(self).session
+    family_size = len(self.gezin) + 1  # Family members + self
+    required_size = PakketGrootte.min_gezinsgrootte
+    return session.query(PakketGrootte).\
+        filter(family_size >= required_size).\
+        order_by(required_size.desc()).first()
+
 
 class KlantFoto(Klant):
-  __tablename__ = 'klant_foto'
-
   klant_id = Column(ForeignKey('klant.id'), primary_key=True)
   foto = Column(types.MEDIUMBLOB)
 
 
 class KlantStatus(Base):
-  __tablename__ = 'klant_status'
-
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
   status = Column(Enum(
@@ -240,8 +257,6 @@ class KlantStatus(Base):
 
 
 class KlantTelefoonnummer(Base):
-  __tablename__ = 'klant_telefoonnummer'
-
   id = Column(Integer, primary_key=True)
   klant_id = Column(ForeignKey('klant.id'))
   soort = Column(Enum('mobiel', 'thuis', 'werk'))
@@ -251,15 +266,11 @@ class KlantTelefoonnummer(Base):
 
 
 class Locatie(Base):
-  __tablename__ = 'locatie'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(Unicode(45))
 
 
 class Medewerker(Base):
-  __tablename__ = 'medewerker'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(Unicode(32))
   email_adres = Column(String(64))
@@ -291,7 +302,6 @@ class Medewerker(Base):
 
 
 class Pakket(Base):
-  __tablename__ = 'pakket'
   __table_args__ = sqlalchemy.Index(
       'abonnement', 'abonnement_id', 'volgnummer', unique=True),
 
@@ -317,8 +327,6 @@ class Pakket(Base):
 
 
 class PakketGrootte(Base):
-  __tablename__ = 'pakket_grootte'
-
   id = Column(SmallInteger, primary_key=True)
   code = Column(types.CHAR(1))
   min_gezinsgrootte = Column(SmallInteger)
@@ -326,8 +334,6 @@ class PakketGrootte(Base):
 
 
 class PakketStatus(Base):
-  __tablename__ = 'pakket_status'
-
   id = Column(Integer, primary_key=True)
   pakket_id = Column(ForeignKey('pakket.id'))
   ophaaldatum = Column(Date)
@@ -343,16 +349,12 @@ class PakketStatus(Base):
 
 
 class Permissie(Base):
-  __tablename__ = 'permissie'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(String(32))
   omschrijving = Column(Text)
 
 
 class Rol(Base):
-  __tablename__ = 'rol'
-
   id = Column(SmallInteger, primary_key=True)
   naam = Column(String(32))
   omschrijving = Column(Unicode(200))
@@ -368,7 +370,6 @@ t_rol_permissie = sqlalchemy.Table(
 
 
 class UitgifteCyclus(Base):
-  __tablename__ = 'uitgifte_cyclus'
   __table_args__ = sqlalchemy.Index(
       'uitgifte', 'ophaaldag', 'locatie_id', unique=True),
 
